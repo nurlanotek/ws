@@ -1,0 +1,153 @@
+Steps to do:
+
+1. Implementing User Sing-in Request Model
+2. Implementing Load User by Username
+3. Implementing Security Constants class
+4. Implementing Authentication filter
+5. Trying how user Sing-in works
+6. Add public User ID to a Response Header
+7. Customize User Authentication URL
+8. Implementing Authorization Filter
+9. Trying how User Authorization works
+10.Making Your REST API Stateless
+11.Reading Token Secret from a property file.
+
+
+----------------- Steps ---------------
+1. Create a request model in the following package: package kg.cs.mobileapp.ui.model.request;
+
+   public class UserLoginRequestModel {
+       private String email;
+       private String password;
+
+       ....
+
+       + getters and setters
+   }
+
+2. In order to help Spring Framework to load users on authentication, we have to implement and override the
+method "loadUserByUsername()" that we have inherited from UserDetailsService via the UserService. The Spring Security
+will receive the POST request, and by using this method the Spring Security is going to check weather the given user
+is in the database.
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserEntity userEntity = userRepository.findByEmail(email);
+        if (userEntity == null)
+            throw new UsernameNotFoundException(email);
+
+        return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+    }
+
+3. During the implementation phase, we will always need some constants values to use in our Beans. For this reason it's
+always good to put those values inside separate file or "application.properties" instead of hard-coding them.
+
+
+    package kg.cs.mobileapp.security;
+
+    public class SecurityConstants {
+        public static final long EXPIRATION_TIME = 864000000; // 10 days
+            public static final long PASSWORD_RESET_EXPIRATION_TIME = 3600000; // 1 hour
+            public static final String TOKEN_PREFIX = "Bearer ";
+            ...
+    }
+
+4. Implementing Authentication filter
+
+    A new Java Class "AuthenticationFilter.java" has to be added to the "package kg.cs.mobileapp.security;"
+
+    public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+        private final AuthenticationManager authenticationManager;
+
+        private String contentType;
+
+        public AuthenticationFilter(AuthenticationManager authenticationManager) {
+            this.authenticationManager = authenticationManager;
+        }
+
+        @Override
+        public Authentication attemptAuthentication(HttpServletRequest req,
+                                                    HttpServletResponse res) throws AuthenticationException {
+        }
+
+        @Override
+        protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain,
+                                                Authentication auth) throws IOException, ServletException {
+        }
+
+    }
+
+After implementing the filter itself, we need to add this filter to the filter chain of spring security.
+
+    protected void configure(HttpSecurity http) throws Exception {
+            http
+                .csrf().disable().authorizeRequests()
+                .antMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_URL)
+                .permitAll()
+                .anyRequest().authenticated().and().addFilter(new AuthenticationFilter(authenticationManager()));
+                                             --------------------------------------------------------------------
+
+5. Let's run and test the app.
+
+Send the POST request to the http://localhost:8080/login with JSON body
+
+6. Add public User ID to a Response Header
+    We still don't have the user's public ID inside the server's response. We need to now add public UserID to the response
+    header in order to uniquely identify the user.
+
+    a) We need to create a new ApplicationContext so that get userService implementation bean, so we can get user details.
+    b) Update "AuthenticationFilter.java" in order to get the access to the Bean of the UserServiceImplementation
+
+    UserService userService = (UserService) SpringApplicationContext.getBean("userServiceImpl");
+    UserDto userDto = userService.getUser(userName); // but this method is not implemented anywhere.
+        b-1) add new method "getUser()" inside
+
+            public interface UserService extends UserDetailsService {
+                UserDto createUser(UserDto userDto);
+              ->UserDto getUser(String email);
+            }
+        b-2) implement this method
+
+            // add in step number 7: to get user id.
+            @Override
+            public UserDto getUser(String email) {
+                UserEntity userEntity = userRepository.findByEmail(email);
+
+                if (userEntity == null) throw new UsernameNotFoundException(email);
+
+                UserDto returnValue = new UserDto();
+                BeanUtils.copyProperties(userEntity, returnValue);
+                return returnValue;
+            }
+
+    c) update MobileApplicationContext to create a bean for the SpringApplicationContext.
+
+RUN and see that public user id is now inside the response.
+
+
+7. Customize User Authentication URL
+By adding the new method to the "WebSecurity.java" and changing the filter chain we can customize the login route.
+
+    // below method customizes the login route
+    public AuthenticationFilter getAuthenticationFilter() throws Exception {
+        final AuthenticationFilter filter = new AuthenticationFilter(authenticationManager());
+        filter.setFilterProcessesUrl("/users/login");
+        return filter;
+    }
+
+ RUN and test it.
+
+ 8. Implementing Authorization Filter
+
+    Authorization filter works every time you do something on the application. That's why we need to create an
+    Authorization fileter inside the security package ("package kg.cs.mobileapp.security;").
+
+    and
+
+    modify WebSecurity file by addin last filter to the chain.
+
+    .anyRequest().authenticated().and().addFilter(getAuthenticationFilter())
+  ->.addFilter(new AuthorizationFilter(authenticationManager()));
+
+9. Trying how User Authorization works
+

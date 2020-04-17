@@ -1,0 +1,44 @@
+Spring security for user sign-up
+1. Adding Spring Security to your project
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
+        compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+
+        // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+        compile group: 'io.jsonwebtoken', name: 'jjwt'
+Conclusion:
+Everything is now protected and access is prohibited.
+
+2. Encrypt user password
+        // declare it in Application
+        @Bean
+        public BCryptPasswordEncoder bCryptPasswordEncoder(){
+            return new BCryptPasswordEncoder();
+        }
+
+        @Autowire it inside Service implementation
+
+Conclusion:
+We encrypt the user password before saving it inside the DB. Encryption method that we used is BCrypt
+
+3. Make the sing-up Web Service Endpoint Public
+    *
+    Create package -> WebSecurity
+
+    *
+    @EnableWebSecurity
+    public class WebSecurity extends WebSecurityConfigurerAdapter {
+    ...
+
+    }
+
+    *
+    Update UserService interface so now, our interface extends UserDetailsService interface of Spring frm.
+
+    public interface UserService extends UserDetailsService {
+
+
+
+Conclusion:
+We configured "POST" request to be public and authorized access to it through Web Security
+
+Test and send POST request and see if request successfully completes with Web Security working.
