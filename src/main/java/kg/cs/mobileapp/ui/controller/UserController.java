@@ -6,6 +6,7 @@ import kg.cs.mobileapp.ui.model.request.UserDetailsRequestModel;
 import kg.cs.mobileapp.ui.model.response.UserRest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.Beans;
@@ -18,19 +19,17 @@ public class UserController {
     UserService userService;
 
     // localhost:8080/users/user_id
-    @GetMapping(path="/{id}")
-    public UserRest getUser(@PathVariable String id){
+    @GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public UserRest getUser(@PathVariable String id) {
         UserRest returnValue = new UserRest();
-
         UserDto userDto = userService.getUserByUserId(id);
-
         BeanUtils.copyProperties(userDto, returnValue);
-
         return returnValue;
     }
 
     // localhost:8080/users
-    @PostMapping
+    @PostMapping(consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) {
         // initializing instance "returnValue" of class UserRest
         UserRest returnValue = new UserRest();

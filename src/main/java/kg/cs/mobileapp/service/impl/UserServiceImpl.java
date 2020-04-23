@@ -57,7 +57,6 @@ public class UserServiceImpl implements UserService {
         return returnValue;
     }
 
-    // add in step number 7: to get user id.
     @Override
     public UserDto getUser(String email) {
         UserEntity userEntity = userRepository.findByEmail(email);
