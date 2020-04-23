@@ -17,11 +17,19 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @GetMapping
-    public String getUser(){
-        return "get user method was called";
+    // localhost:8080/users/user_id
+    @GetMapping(path="/{id}")
+    public UserRest getUser(@PathVariable String id){
+        UserRest returnValue = new UserRest();
+
+        UserDto userDto = userService.getUserByUserId(id);
+
+        BeanUtils.copyProperties(userDto, returnValue);
+
+        return returnValue;
     }
 
+    // localhost:8080/users
     @PostMapping
     public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) {
         // initializing instance "returnValue" of class UserRest
