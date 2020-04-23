@@ -54,9 +54,29 @@ public class UserController {
         return returnValue;
     }
 
-    @PutMapping
-    public String updateUser(){
-        return "update user method was called";
+    @PutMapping(path = "/{id}",
+            consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails){
+        // initializing instance "returnValue" of class UserRest
+        UserRest returnValue = new UserRest();
+
+        if (userDetails.getFirstName().isEmpty()) throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
+        // if (userDetails.getFirstName().isEmpty()) throw new NullPointerException("The object is null");
+
+        // initializing instance "userDto" of class UserDto (shared Data Transfer Object)
+        UserDto userDto = new UserDto();
+
+        // transfer received values from "userDetails" obj into the "userDto" ojb
+        BeanUtils.copyProperties(userDetails, userDto);
+
+        // Create the new user in the DB and return the response back
+        UserDto updatedUser = userService.updateUser(id, userDto);
+
+        // transfer values from createdUser obj into the "returnValue" ojb
+        BeanUtils.copyProperties(updatedUser, returnValue);
+
+        return returnValue;
     }
 
     @DeleteMapping
