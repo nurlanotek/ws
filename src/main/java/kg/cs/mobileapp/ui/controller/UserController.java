@@ -1,8 +1,10 @@
 package kg.cs.mobileapp.ui.controller;
 
+import kg.cs.mobileapp.exceptions.UserServiceException;
 import kg.cs.mobileapp.service.UserService;
 import kg.cs.mobileapp.shared.dto.UserDto;
 import kg.cs.mobileapp.ui.model.request.UserDetailsRequestModel;
+import kg.cs.mobileapp.ui.model.response.ErrorMessages;
 import kg.cs.mobileapp.ui.model.response.UserRest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +32,12 @@ public class UserController {
     // localhost:8080/users
     @PostMapping(consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) {
+    public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
         // initializing instance "returnValue" of class UserRest
         UserRest returnValue = new UserRest();
+
+        if (userDetails.getFirstName().isEmpty()) throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
+        // if (userDetails.getFirstName().isEmpty()) throw new NullPointerException("The object is null");
 
         // initializing instance "userDto" of class UserDto (shared Data Transfer Object)
         UserDto userDto = new UserDto();
