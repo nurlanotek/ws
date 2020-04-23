@@ -32,6 +32,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
             .addFilter(new AuthorizationFilter(authenticationManager()))
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        // in order to avoid caching of our JSon header inside sessions, we need to make our REST API - stateless
     }
 
     @Override
@@ -39,10 +40,12 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
 
-    // below method customizes the login route
+    // below method customizes the standard Spring Security LOGIN route
     public AuthenticationFilter getAuthenticationFilter() throws Exception {
         final AuthenticationFilter filter = new AuthenticationFilter(authenticationManager());
+
         filter.setFilterProcessesUrl("/users/login");
+
         return filter;
     }
 }

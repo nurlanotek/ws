@@ -26,8 +26,10 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
                                     HttpServletResponse res,
                                     FilterChain chain) throws IOException, ServletException {
 
+        // get the value from Header field named "Authorizaton" inside the request
         String header = req.getHeader(SecurityConstants.HEADER_STRING);
 
+        // if header contains "Messager" Prefix inside and it's not NULL
         if (header == null || !header.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             chain.doFilter(req, res);
             return;
@@ -43,10 +45,13 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 
         if (token != null) {
 
+            // remove prefix ("Messager") from the Json token
             token = token.replace(SecurityConstants.TOKEN_PREFIX, "");
 
+            // decode / parse the Json token to retrieve the user from the token
             String user = Jwts.parser()
-                    .setSigningKey( SecurityConstants.TOKEN_SECRET )
+                    //.setSigningKey( SecurityConstants.TOKEN_SECRET )
+                    .setSigningKey(SecurityConstants.getTokenSecret())
                     .parseClaimsJws( token )
                     .getBody()
                     .getSubject();

@@ -18,6 +18,7 @@ public class MobileAppWsApplication {
         return new BCryptPasswordEncoder();
     }
 
+    // we created this Bean so we can retrieve the Beans during run-time
     @Bean
     public SpringApplicationContext springApplicationContext(){
         return new SpringApplicationContext();
